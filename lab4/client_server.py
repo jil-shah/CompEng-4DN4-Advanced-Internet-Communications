@@ -41,7 +41,7 @@ class Server:
                 print(f"Connection received from {address}")
                 client_thread = threading.Thread(
                     target=self.handle_client,
-                    args=(client_socket,),
+                    args=(client_socket,address),
                     daemon=True
                 )
                 client_thread.start()
@@ -51,8 +51,8 @@ class Server:
         finally:
             self.socket.close()
 
-    def handle_client(self, sock):
-        name = ""
+    def handle_client(self, sock, address):
+        name = "Anonymous"
         try:
             while True:
                 data = sock.recv(RECV_SIZE)
@@ -113,6 +113,9 @@ class Server:
                             break
 
                 elif cmd == "bye":
+                    if not name:
+                        name = "Anonymous"
+                    print(f"[{name} @ {address[0]}:{address[1]}] Connection has been closed")
                     sock.sendall("Goodbye!".encode(ENCODING))
                     break
 
@@ -150,6 +153,8 @@ class Client:
 
     def connect_to_server(self):
         try:
+            # Recreate the socket in case it's closed
+            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.connect((ALL_IP, PORT))
             print(f"Connected to server on port {PORT}")
         except Exception as msg:
@@ -183,6 +188,7 @@ class Client:
 
                 if command == "name" and len(cmd) == 2:
                     self.chat_name = cmd[1]
+                    self.socket.sendall(f"name {self.chat_name}".encode(ENCODING))
                     print(f"Name set to {self.chat_name}")
 
                 elif command == "getdir":
@@ -221,7 +227,7 @@ class Client:
             return
 
         multicast_ip, multicast_port = self.directory[room_name]
-        print(f"Entering room '{room_name}' — press Ctrl+] to exit")
+        print(f"Entering room '{room_name}' — press Ctrl C to exit")
 
         # Multicast receive socket
         recv_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
