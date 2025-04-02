@@ -60,6 +60,7 @@ class Server:
                     break
 
                 command_line = data.decode(ENCODING).strip()
+                print(f"[{address}] Received: {command_line}")
                 args = command_line.split()
                 if not args:
                     continue
@@ -189,7 +190,8 @@ class Client:
                 if command == "name" and len(cmd) == 2:
                     self.chat_name = cmd[1]
                     self.socket.sendall(f"name {self.chat_name}".encode(ENCODING))
-                    print(f"Name set to {self.chat_name}")
+                    response = self.socket.recv(RECV_SIZE).decode(ENCODING)
+                    print(response)
 
                 elif command == "getdir":
                     self.socket.sendall("getdir".encode(ENCODING))
@@ -211,6 +213,16 @@ class Client:
                     break
 
                 elif command == "chat" and len(cmd) == 2:
+                    # Origonally, even if a chat existed, you could not enter it without running getdir, but technically it does exist so when chat
+                    # is prompted, it should join without having to run getdir
+                
+                    self.socket.sendall("getdir".encode(ENCODING))
+                    response = self.socket.recv(RECV_SIZE).decode(ENCODING)
+                    try:
+                        self.directory = json.loads(response)
+                    except json.JSONDecodeError:
+                        print("Could not fetch directory. Invalid response from server.")
+                        continue
                     self.enter_chatroom(cmd[1])
 
                 else:
@@ -261,15 +273,16 @@ class Client:
         send_sock.sendto(join_msg.encode(ENCODING), (multicast_ip, multicast_port))
 
         # Chat loop
+        print("Type '/exit' to leave the chat room.")
         while True:
             try:
                 msg = input()
-                if msg == '\x1d':  # Ctrl+]
+                if msg.strip().lower() == "/exit":
                     break
                 full_msg = f"{self.chat_name}: {msg}"
                 send_sock.sendto(full_msg.encode(ENCODING), (multicast_ip, multicast_port))
             except (KeyboardInterrupt, EOFError):
-                break
+                print("\nUse /exit instead of Ctrl+C to safely exit.")
 
         # Notify leave
         leave_msg = f"{self.chat_name} has left the chat."
