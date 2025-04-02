@@ -150,7 +150,7 @@ class Client:
 
     def connect_to_server(self):
         try:
-            self.socket.connect((HOSTNAME, PORT))
+            self.socket.connect((ALL_IP, PORT))
             print(f"Connected to server on port {PORT}")
         except Exception as msg:
             print("Connection failed:", msg)
@@ -226,6 +226,7 @@ class Client:
         # Multicast receive socket
         recv_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         recv_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        recv_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         recv_sock.bind(('', multicast_port))
 
         group = socket.inet_aton(multicast_ip)
