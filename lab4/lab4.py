@@ -83,10 +83,10 @@ class Client:
                     self.thread.join()
                 sys.exit()
             elif(cmd.startswith("name ")):
-                self.chatid = comd.split(' ', 1)[1]
+                self.chatid = cmd.split(' ', 1)[1]
                 print("chat name is: {cmd.split(' ', 1)[1]}")
             elif(cmd.startswith("chat ")):           
-                chatid = command.split()[1]
+                chatid = cmd.split()[1]
                 response = self.send_command(f"getdir")
                 chat_dir = json.loads(response.decode('utf-8'))
                 if chatid in chat_dir[chatid]:
