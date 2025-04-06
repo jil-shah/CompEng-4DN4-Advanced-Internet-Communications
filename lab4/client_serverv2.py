@@ -13,7 +13,6 @@ ENCODING = "utf-8"
 RECV_SIZE = 1024
 INTERFACE_IP = "172.17.100.208" 
 
-
 class Server: 
     BACKLOG = 10 
 
@@ -37,7 +36,7 @@ class Server:
         try:
             while(True):
                 client_socket, address = self.socket.accept()
-                print("Connection received from "+address)
+                print(f"Connection received from {address}")
                 client_thread = threading.Thread(target=self.handle_client,args=(client_socket,address),daemon=True)
                 client_thread.start()
         except KeyboardInterrupt:
@@ -55,6 +54,9 @@ class Server:
             print(f"[{address}] Received: {command_line}")
             args = command_line.split()
 
+            if not args:
+                continue
+
             cmd = args[0]
 
             if(cmd == "getdir"):
@@ -66,19 +68,19 @@ class Server:
                     sock.sendall("Room exists or IP/port already used".encode(ENCODING))
                 else:
                     self.chatrooms[room] = (ip, port)
-                    sock.sendall("Room "+room+" created".encode(ENCODING))
+                    sock.sendall(f"Room "+room+" created".encode(ENCODING))
 
             elif(cmd == "deleteroom" and len(args) == 2):
                 room = args[1]
                 if(room in self.chatrooms):
                     del self.chatrooms[room]
-                    sock.sendall("Room "+room+" deleted.".encode(ENCODING))
+                    sock.sendall(f"Room "+room+" deleted.".encode(ENCODING))
                 else:
                     sock.sendall("Room not found.".encode(ENCODING))
 
             elif(cmd == "name" and len(args) == 2):
                 name = args[1]
-                sock.sendall("Username set to "+name+"".encode(ENCODING))
+                sock.sendall(f"Username set to "+name+"".encode(ENCODING))
 
             elif(cmd == "chat" and len(args) == 2):
                 room_name = args[1]
@@ -146,7 +148,7 @@ class Client:
 
     def client_main_menu(self):
             while(True):
-                cmd = input("Would you like to... \n1) connect\n2) exit").strip().split()
+                cmd = input("Would you like to... \n1) connect\n2) exit \n Enter: ").strip().split()
                 if(cmd[0] == "connect"):
                     self.connect_to_server()
                     self.crds_menu()
@@ -157,7 +159,7 @@ class Client:
     def crds_menu(self):
         while True:
             try:
-                cmd = input("Input Chat Command (enter any arguments required): \n1) name\n2) getdir\n3) makeroom\n4) deleteroom\n5) chat \n6) bye").strip().split()
+                cmd = input("Input Chat Command (enter any arguments required): \n1) name\n2) getdir\n3) makeroom\n4) deleteroom\n5) chat \n6) bye \n Enter: ").strip().split()
               
                 command = cmd[0]
 
@@ -187,9 +189,6 @@ class Client:
                     break
 
                 elif (command == "chat" and len(cmd) == 2):
-                    # Origonally, even if a chat existed, you could not enter it without running getdir, but technically it does exist so when chat
-                    # is prompted, it should join without having to run getdir
-                
                     self.socket.sendall("getdir".encode(ENCODING))
                     response = self.socket.recv(RECV_SIZE).decode(ENCODING)
                     try:
