@@ -7,11 +7,11 @@ import struct
 
 
 #Setting up global variables
-ALL_IP = "0.0.0.0"
+ALL_IP = "127.0.0.1"
 PORT = 60000
 ENCODING = "utf-8"
 RECV_SIZE = 1024
-INTERFACE_IP = "172.17.100.208" 
+INTERFACE_IP = "127.0.0.1" 
 
 class Server: 
     BACKLOG = 10 
@@ -68,19 +68,19 @@ class Server:
                     sock.sendall("Room exists or IP/port already used".encode(ENCODING))
                 else:
                     self.chatrooms[room] = (ip, port)
-                    sock.sendall(f"Room "+room+" created".encode(ENCODING))
+                    sock.sendall(f"Room {room} created".encode(ENCODING))
 
             elif(cmd == "deleteroom" and len(args) == 2):
                 room = args[1]
                 if(room in self.chatrooms):
                     del self.chatrooms[room]
-                    sock.sendall(f"Room "+room+" deleted.".encode(ENCODING))
+                    sock.sendall(f"Room {room} deleted.".encode(ENCODING))
                 else:
                     sock.sendall("Room not found.".encode(ENCODING))
 
             elif(cmd == "name" and len(args) == 2):
                 name = args[1]
-                sock.sendall(f"Username set to "+name+"".encode(ENCODING))
+                sock.sendall(f"Username set to {name}".encode(ENCODING))
 
             elif(cmd == "chat" and len(args) == 2):
                 room_name = args[1]
@@ -104,7 +104,7 @@ class Server:
             elif (cmd == "bye"):
                 if(not name):
                     name = "Anonymous"
-                print(f"["+name+" @ "+address[0]+":"+address[1]+"] Connection has been closed")
+                print(f"[{name} @ "{address[0]}":"{address[1]}"] Connection has been closed")
                 sock.sendall("Goodbye!".encode(ENCODING))
                 break
 
